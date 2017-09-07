@@ -1,0 +1,29 @@
+{% set current_page = request.path.raw.split('/')[1] %}
+{% if start_index is not defined %}
+    {% set start_index = 1 %}
+{% endif %}
+{% for i, company_payment in enumerate(company_payment_list, start=start_index) %}
+    <tr>
+        <td class="item">
+            <a class="listing-name"
+                {% if company_payment.url_path %}
+                    href="{{ company_payment.url_path }}"
+                {% else %}
+                    href="#"
+                >{{ company_payment.name }}</a>
+            <div class="listing-name"> {{ company_payment.amount }} </div>
+
+            <div class="listing-details">
+                <span class="i">{{ i }}</span>
+                <span class="ctime">&middot;
+                    {{ _("Funded Open Source {ago}", ago=to_age(company_payment.ctime, add_direction=True)) }}
+                </span>
+                {% if company_payment.message %}
+                <span class="status">&middot;
+                    {{ company_project.message }}
+                </span>
+                {% endif %}
+            </div>
+        </td>
+    </tr>
+{% endfor %}

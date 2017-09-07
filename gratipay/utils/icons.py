@@ -9,3 +9,7 @@ REVIEW_MAP = { 'approved': 'success'
              , 'rejected': 'failure'
              , 'featured': 'feature'
               }
+
+SORT_MAP = { 'by_time': "By Time"
+           , 'by_amount': "By Amount"
+            }

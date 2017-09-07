@@ -1,0 +1,94 @@
+from collections import OrderedDict
+from gratipay.utils import icons, tabs
+import random
+
+[---]
+COMPANY_PAYMENTS_PER_PAGE = 10
+
+# Can't factor this out because of translations?
+i18ned_sorts = { "by_time": _("By Time")
+               , "by_amount" : _("By Amount")
+               }
+
+sort_by = request.qs.get('sort_by')
+active_sort_order = (sort_by and sort_by in ['by_time', 'by_amount'])
+
+page = request.qs.get('page', 1)
+try:
+    page = int(page)
+except ValueError:
+    page = 1
+
+if active_sort_order:
+    tabs.make(tab_html, 'sort_by', sort_by, 'time', 'amount')
+    sort_value = {
+        'by_time': 'ctime',
+        'by_amount': 'amount'
+        }
+else:
+    active_sort_order = 'by_time'
+    sort_value = 'ctime'
+        
+total_company_payments_count = website.db.one("""
+    
+    SELECT COUNT(1)
+      FROM company_payments
+     WHERE captured = true
+
+""")
+
+limit, offset = COMPANY_PAYMENTS_PER_PAGE, (page - 1) * COMPANY_PAYMENTS_PER_PAGE
+
+company_payments = website.db.all("""
+
+    SELECT *
+      FROM company_payments
+     WHERE captured = true
+  ORDER BY %s DESC
+     LIMIT %s
+    OFFSET %s
+
+""", (sort_value, limit, offset))
+
+
+def tab_html(key, tab):
+    sort_by = icons.SORT_MAP[key]
+    return '{}'.format( sort_by  )
+
+tabs = tabs.make(tab_html, 'sort_by', sort_by, 'by_time', 'by_amount')
+
+title = _("Company Payments")
+banner = _("Browse")
+suppress_sidebar = True
+page_id = "browse-payments"
+[---] text/html
+{% from "templates/nav-tabs.html" import nav_tabs with context %}
+{% extends "templates/base.html" %}
+{% block head_early %}
+    {% if website.optimizely_id and request.headers.get('DNT') != '1' %}
+    <script src="//cdn.optimizely.com/js/{{ website.optimizely_id }}.js"></script>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<form action="/apply" class="apply-button">
+    <button type="submit">{{ _("Fund Your Project") }}</button>
+</form>
+
+{{ nav_tabs(tabs) }}
+
+<table class="listing">
+    {% set company_payment_list = company_payments %}
+    {% set start_index = ((page - 1) * COMPANY_PAYMENTS_PER_PAGE) + 1 %}
+    {% include "templates/company-payments-listing.html" %}
+</table>
+
+{% if active_sort_order and (total_company_payment_count > COMPANY_PAYMENTS_PER_PAGE) %}
+    {% set total_company_payment_count = total_company_payment_count %}
+    {% set company_payments_per_page = COMPANY_PAYMENTS_PER_PAGE %}
+    {% set current_page = page %}
+    {% set sort_by = sort_by %}
+    {% include "templates/payment-pagination.html" %}
+{% endif %}
+
+{% endblock %}
