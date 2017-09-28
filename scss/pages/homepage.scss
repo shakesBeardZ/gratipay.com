@@ -133,8 +133,10 @@
                     font: bold 14px/14px $Ideal;
                     position: absolute;
                     top: 100px;
+                    left: 0;
                     text-align: center;
                     width: 100%;
+                    z-index: -1;
                 }
             }
 
