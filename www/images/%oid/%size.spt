@@ -1,0 +1,29 @@
+import mimetypes
+from aspen import Response
+from os.path import join
+
+load = lambda s: open(join(website.www_root, 'assets', 'team-default-{}.png'.format(s))).read()
+DEFAULTS = {size: load(size) for size in ('large', 'small')}
+DEFAULTS['original'] = DEFAULTS['large']
+
+load = lambda s: open(join(website.www_root, 'assets', 'package-default-{}.png'.format(s))).read()
+DEFAULTS_NPM = {size: load(size) for size in ('large', 'small')}
+DEFAULTS_NPM['original'] = DEFAULTS_NPM['large']
+[----]
+image, media_type = images.load(oid), team.image_type
+if image is None:
+    # determine type of thing this oid is linked to
+    utils.resolve_default_for_oid(oid)
+    website.db.one('SELECT id')
+
+    defaults = DEFAULTS_NPM if team.package else DEFAULTS
+    image, media_type = defaults[size], "image/png"
+
+parts = request.path.raw.split('/')
+if '.' in parts[-1]:
+    parts[-1] = 'image'
+    website.redirect('/'.join(parts))
+
+response.headers['Content-Type'] = media_type
+[----] image/*
+image
